@@ -8,7 +8,7 @@ import { ticketsRouter } from './routes/tickets.js';
 import { analyticsRouter } from './routes/analytics.js';
 import { usersRouter } from './routes/users.js';
 import { requeueStuckTickets } from './services/triageQueue.js';
-import { isModelConfigured } from './services/ai.js';
+import { isModelConfigured, MODEL } from './services/ai.js';
 
 if (!process.env.JWT_SECRET) {
   // Failing loudly at boot beats signing tokens with a guessable default.
@@ -49,7 +49,7 @@ app.listen(PORT, () => {
   console.log(`API listening on http://localhost:${PORT}`);
   console.log(
     isModelConfigured()
-      ? `Triage model: ${process.env.AI_MODEL || 'claude-haiku-4-5-20251001'}`
+      ? `Triage model: ${MODEL}`
       : 'No ANTHROPIC_API_KEY set - triage will use offline keyword rules.'
   );
   requeueStuckTickets();
