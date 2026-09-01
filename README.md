@@ -1,5 +1,8 @@
 # Triage Desk
 
+**[Live demo](https://triage-desk-lemon.vercel.app)** — free tier, so the first
+request after idle takes about 40 seconds while the API wakes up.
+
 Every incoming support ticket is read by a language model before a human sees
 it. The model sets a category and a priority, writes a one-line summary, and
 drafts a reply the agent edits and sends.
@@ -127,6 +130,7 @@ All of these came from trying to break the app, not from using it correctly.
 | Boot log named a different model than the one being called | The log and the request builder each had their own hardcoded default. |
 | A table broke the whole page layout | Six columns were wider than a phone viewport, so the entire page scrolled sideways, not just the table. |
 | Two nav links active at once | `/tickets/new` is prefixed by `/tickets`, and `NavLink` prefix-matches by default. |
+| Import-time queries crashed on a fresh database | Module imports resolve before the entry point runs, so statements prepared at module scope hit tables that migration had not created yet. Only appeared on first deploy; locally a seeded file always existed. |
 
 ### The P1/P4 one
 
