@@ -1,0 +1,967 @@
+/*
+  A triage console. Colour carries exactly one meaning here: severity. Every
+  other surface stays in the grey range, so a red rail on a row means something
+  even when the screen is across a desk. Anything that is not a priority signal
+  earns its emphasis through weight and spacing instead.
+*/
+
+:root {
+  --canvas: #e8ebee;
+  --surface: #ffffff;
+  --surface-sunk: #f3f5f7;
+  --ink: #14181d;
+  --ink-soft: #454e59;
+  --muted: #6e7884;
+  --line: #d6dbe1;
+  --line-strong: #b4bcc6;
+
+  --accent: #1f3a5f;
+  --accent-hover: #2b4d7a;
+
+  --p1: #b22d22;
+  --p1-wash: #fdf4f3;
+  --p2: #b0620f;
+  --p3: #216f4f;
+  --p4: #78838f;
+
+  --radius: 4px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--canvas);
+  color: var(--ink);
+  font-family: 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  font-size: 14.5px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3 {
+  margin: 0;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+h1 {
+  font-size: 27px;
+  letter-spacing: -0.022em;
+}
+
+h2 {
+  font-size: 19px;
+  letter-spacing: -0.012em;
+}
+
+h3 {
+  font-size: 15px;
+  letter-spacing: -0.005em;
+}
+
+p {
+  margin: 0 0 12px;
+}
+
+a {
+  color: var(--accent);
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* ---------------------------------------------------------------- layout */
+
+.shell {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.topbar {
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  min-height: 56px;
+  flex-wrap: wrap;
+}
+
+.brand {
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  font-size: 16px;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.nav {
+  display: flex;
+  gap: 22px;
+  flex: 1;
+}
+
+.nav a {
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  padding: 18px 0;
+  border-bottom: 2px solid transparent;
+}
+
+.nav a:hover {
+  color: var(--ink);
+}
+
+.nav a.active {
+  color: var(--ink);
+  border-bottom-color: var(--accent);
+}
+
+.who {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.page {
+  padding: 30px 24px 72px;
+  max-width: 1180px;
+  width: 100%;
+  margin: 0 auto;
+  flex: 1;
+}
+
+.page-head {
+  margin-bottom: 22px;
+}
+
+.page-head p {
+  color: var(--muted);
+  margin: 6px 0 0;
+  max-width: 60ch;
+}
+
+.back-link {
+  font-size: 13px;
+  color: var(--muted);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.back-link:hover {
+  color: var(--ink);
+  text-decoration: underline;
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+
+.card-pad {
+  padding: 20px;
+}
+
+/* ---------------------------------------------------------------- forms */
+
+label {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink-soft);
+  margin-bottom: 5px;
+}
+
+input,
+textarea,
+select {
+  width: 100%;
+  padding: 9px 11px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+  background: var(--surface);
+  font: inherit;
+  font-size: 14px;
+  color: var(--ink);
+}
+
+textarea {
+  resize: vertical;
+  min-height: 108px;
+  line-height: 1.6;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  border-color: var(--accent);
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(31, 58, 95, 0.11);
+}
+
+.field {
+  margin-bottom: 17px;
+}
+
+.hint {
+  font-size: 12.5px;
+  color: var(--muted);
+  margin-top: 5px;
+}
+
+button {
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  padding: 9px 17px;
+  border-radius: var(--radius);
+  border: 1px solid var(--accent);
+  background: var(--accent);
+  color: #fff;
+  cursor: pointer;
+}
+
+button:hover:not(:disabled) {
+  background: var(--accent-hover);
+}
+
+button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+button.secondary {
+  background: var(--surface);
+  color: var(--ink);
+  border-color: var(--line-strong);
+}
+
+button.secondary:hover:not(:disabled) {
+  background: var(--surface-sunk);
+}
+
+button.danger {
+  background: var(--surface);
+  color: var(--p1);
+  border-color: #dcb5b0;
+}
+
+button.danger:hover:not(:disabled) {
+  background: var(--p1-wash);
+}
+
+button.small {
+  padding: 6px 11px;
+  font-size: 13px;
+}
+
+.button-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.alert {
+  border: 1px solid #dcb5b0;
+  border-left-width: 3px;
+  border-left-color: var(--p1);
+  background: var(--p1-wash);
+  color: #7c231a;
+  padding: 10px 13px;
+  border-radius: var(--radius);
+  font-size: 14px;
+  margin-bottom: 17px;
+}
+
+.confirm-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 11px 14px;
+  border: 1px solid var(--line-strong);
+  border-left: 3px solid var(--p2);
+  background: #fdf8ee;
+  border-radius: var(--radius);
+  font-size: 13.5px;
+  color: var(--ink-soft);
+  margin-top: 12px;
+}
+
+.confirm-bar .button-row {
+  margin-left: auto;
+}
+
+/* ---------------------------------------------------------------- auth */
+
+.auth-wrap {
+  min-height: 100%;
+  display: grid;
+  place-items: center;
+  padding: 40px 20px;
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 404px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 30px;
+}
+
+.auth-card h1 {
+  margin-bottom: 6px;
+}
+
+.auth-card > p {
+  color: var(--muted);
+  font-size: 14px;
+  margin-bottom: 24px;
+}
+
+.demo-logins {
+  margin-top: 24px;
+  padding-top: 19px;
+  border-top: 1px solid var(--line);
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.demo-logins button {
+  background: none;
+  border: none;
+  color: var(--accent);
+  padding: 2px 0;
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.demo-logins button:hover {
+  background: none;
+  color: var(--accent-hover);
+}
+
+/* ---------------------------------------------------------------- queue */
+
+.filters {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.filters select {
+  width: auto;
+  min-width: 152px;
+}
+
+.queue {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  overflow: hidden;
+}
+
+.queue-row {
+  display: grid;
+  grid-template-columns: 5px 48px 1fr 136px 112px 92px;
+  align-items: stretch;
+  border-bottom: 1px solid var(--line);
+  text-decoration: none;
+  color: inherit;
+}
+
+.queue-row:last-child {
+  border-bottom: none;
+}
+
+.queue-row:hover {
+  background: var(--surface-sunk);
+}
+
+/* A ticket where money is stuck should be visible before the row is read, so
+   the whole row is tinted rather than only its rail. */
+.queue-row.urgent {
+  background: var(--p1-wash);
+}
+
+.queue-row.urgent:hover {
+  background: #fbeae7;
+}
+
+.queue-head {
+  background: var(--surface-sunk);
+  font-size: 12px;
+  color: var(--muted);
+  font-weight: 500;
+}
+
+.queue-head > div {
+  padding: 9px 13px;
+}
+
+.rail {
+  background: var(--line);
+}
+
+.rail.p1 {
+  background: var(--p1);
+}
+.rail.p2 {
+  background: var(--p2);
+}
+.rail.p3 {
+  background: var(--p3);
+}
+.rail.p4 {
+  background: var(--p4);
+}
+
+.queue-row > .cell {
+  padding: 13px;
+  font-size: 14px;
+  min-width: 0;
+}
+
+.cell-priority {
+  font-weight: 700;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+.cell-priority.p1 {
+  color: var(--p1);
+}
+.cell-priority.p2 {
+  color: var(--p2);
+}
+.cell-priority.p3 {
+  color: var(--p3);
+}
+.cell-priority.p4 {
+  color: var(--p4);
+}
+
+.cell-subject {
+  font-weight: 600;
+  letter-spacing: -0.005em;
+}
+
+.cell-subject .summary {
+  display: block;
+  font-weight: 400;
+  letter-spacing: 0;
+  color: var(--muted);
+  font-size: 13px;
+  margin-top: 3px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cell-meta {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.empty {
+  padding: 52px 24px;
+  text-align: center;
+  color: var(--muted);
+  max-width: 46ch;
+  margin: 0 auto;
+}
+
+.empty h3 {
+  color: var(--ink);
+  margin-bottom: 7px;
+}
+
+.empty p {
+  margin-bottom: 0;
+  font-size: 13.5px;
+}
+
+/* ---------------------------------------------------------------- pills */
+
+.pill {
+  display: inline-block;
+  padding: 2px 9px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+  border: 1px solid var(--line-strong);
+  color: var(--ink-soft);
+  background: var(--surface-sunk);
+  white-space: nowrap;
+}
+
+.pill.open {
+  border-color: #b3c5db;
+  background: #eef3f9;
+  color: #234468;
+}
+
+.pill.in_progress {
+  border-color: #dcc498;
+  background: #fdf6e8;
+  color: #85600f;
+}
+
+.pill.resolved {
+  border-color: #a5cdb9;
+  background: #eef7f2;
+  color: #1c5b42;
+}
+
+/* ---------------------------------------------------------------- detail */
+
+.detail {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 344px;
+  gap: 20px;
+  align-items: start;
+}
+
+.thread {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.message {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  padding: 15px 17px;
+}
+
+.message.staff {
+  background: var(--surface-sunk);
+  border-left: 3px solid var(--accent);
+}
+
+/* Notes are staff-only, so they read as an aside on the thread rather than as
+   part of the conversation the customer can see. */
+.message.note {
+  background: #fdf8ee;
+  border-color: #e2d3ab;
+  border-left: 3px solid var(--p2);
+}
+
+.message-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 12.5px;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+
+.message-head strong {
+  color: var(--ink);
+  font-weight: 600;
+  font-size: 13.5px;
+}
+
+.message-body {
+  white-space: pre-wrap;
+  line-height: 1.62;
+}
+
+.side {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  position: sticky;
+  top: 20px;
+}
+
+.panel-head {
+  padding: 12px 17px;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.panel-head h3 {
+  font-size: 14px;
+}
+
+/* The verdict line. Priority is the one thing an agent reads first, so it is
+   set larger than anything else in the panel. */
+.verdict {
+  display: flex;
+  align-items: baseline;
+  gap: 11px;
+  padding: 16px 17px 4px;
+}
+
+.verdict .priority {
+  font-size: 30px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.verdict .priority.p1 {
+  color: var(--p1);
+}
+.verdict .priority.p2 {
+  color: var(--p2);
+}
+.verdict .priority.p3 {
+  color: var(--p3);
+}
+.verdict .priority.p4 {
+  color: var(--p4);
+}
+
+.verdict .category {
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.readout {
+  display: flex;
+  gap: 18px;
+  flex-wrap: wrap;
+  padding: 8px 17px 0;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.readout span strong {
+  color: var(--ink-soft);
+  font-weight: 500;
+}
+
+.panel-note {
+  padding: 13px 17px 16px;
+  font-size: 13.5px;
+  color: var(--ink-soft);
+  line-height: 1.58;
+}
+
+.similar-item {
+  padding: 13px 17px;
+  border-bottom: 1px solid var(--line);
+  font-size: 13.5px;
+}
+
+.similar-item:last-child {
+  border-bottom: none;
+}
+
+.similar-item a {
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.similar-item a:hover {
+  text-decoration: underline;
+}
+
+.similar-item p {
+  color: var(--muted);
+  margin: 4px 0 0;
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+
+.draft-box {
+  padding: 15px 17px 17px;
+}
+
+.draft-box textarea {
+  min-height: 148px;
+  font-size: 13.5px;
+}
+
+.note-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 13px 0 0;
+  font-size: 13.5px;
+  color: var(--ink-soft);
+  cursor: pointer;
+}
+
+.note-toggle input {
+  width: auto;
+  margin: 0;
+  cursor: pointer;
+}
+
+.spinner {
+  display: inline-block;
+  width: 13px;
+  height: 13px;
+  border: 2px solid var(--line-strong);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  vertical-align: -2px;
+  margin-right: 7px;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spinner {
+    animation-duration: 2.4s;
+  }
+}
+
+/* ---------------------------------------------------------------- stats */
+
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(172px, 1fr));
+  gap: 14px;
+  margin-bottom: 24px;
+}
+
+.stat {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 17px;
+}
+
+.stat .value {
+  font-size: 30px;
+  font-weight: 600;
+  letter-spacing: -0.032em;
+  line-height: 1.05;
+  font-variant-numeric: tabular-nums;
+}
+
+.stat .label {
+  font-size: 13px;
+  color: var(--muted);
+  margin-top: 5px;
+}
+
+.chart-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 16px;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.table th,
+.table td {
+  text-align: left;
+  padding: 10px 13px;
+  border-bottom: 1px solid var(--line);
+}
+
+.table th {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--muted);
+}
+
+.table td {
+  font-variant-numeric: tabular-nums;
+}
+
+.table tr:last-child td {
+  border-bottom: none;
+}
+
+/* ---------------------------------------------------------------- narrow */
+
+@media (max-width: 900px) {
+  .detail {
+    grid-template-columns: 1fr;
+  }
+
+  .side {
+    position: static;
+  }
+
+  .queue-row {
+    grid-template-columns: 5px 44px 1fr 98px;
+  }
+
+  .queue-row > .cell-category,
+  .queue-row > .cell-age {
+    display: none;
+  }
+}
+
+@media (max-width: 700px) {
+  .topbar {
+    padding: 10px 16px;
+    gap: 8px 18px;
+  }
+
+  /* The brand takes the full first row so the layout does not shift when a
+     longer name pushes the account controls onto a second line. */
+  .brand {
+    width: 100%;
+  }
+
+  .nav {
+    flex: 1;
+    gap: 18px;
+  }
+
+  .nav a {
+    padding: 4px 0;
+  }
+
+  .who {
+    gap: 8px;
+  }
+
+  /* The account name is the first thing to go on a narrow screen: people know
+     who they are signed in as, and the space is better spent on the queue. */
+  .who span {
+    display: none;
+  }
+
+  .page {
+    padding: 22px 16px 56px;
+  }
+
+  h1 {
+    font-size: 23px;
+  }
+
+  .filters select {
+    flex: 1;
+    min-width: 140px;
+  }
+
+  .confirm-bar .button-row {
+    margin-left: 0;
+    width: 100%;
+  }
+}
+
+/* ---------------------------------------------------------------- people */
+
+.table.people td {
+  vertical-align: top;
+  padding-top: 13px;
+  padding-bottom: 13px;
+}
+
+.person-name {
+  display: block;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+}
+
+.person-email {
+  display: block;
+  font-size: 12.5px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+.pill.role-admin {
+  border-color: #b3c5db;
+  background: #eef3f9;
+  color: #234468;
+}
+
+.pill.role-agent {
+  border-color: #a5cdb9;
+  background: #eef7f2;
+  color: #1c5b42;
+}
+
+.role-note {
+  display: block;
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 4px;
+  max-width: 26ch;
+  line-height: 1.4;
+}
+
+.row-action {
+  text-align: right;
+  white-space: nowrap;
+}
+
+@media (max-width: 700px) {
+  .table.people .role-note,
+  .table.people th:nth-child(3),
+  .table.people td:nth-child(3) {
+    display: none;
+  }
+}
+
+@media (max-width: 700px) {
+  /* Six columns cannot fit a phone, so the counts and the join date drop away
+     and the row keeps only what a decision needs: who they are, what access
+     they have, and the button that changes it. */
+  .table.people th:nth-child(3),
+  .table.people td:nth-child(3),
+  .table.people th:nth-child(4),
+  .table.people td:nth-child(4),
+  .table.people th:nth-child(5),
+  .table.people td:nth-child(5),
+  .table.people .role-note {
+    display: none;
+  }
+
+  .table.people th,
+  .table.people td {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  .person-email {
+    word-break: break-all;
+  }
+}
+
+/* If a future column pushes the table past the viewport, it scrolls inside its
+   own card instead of dragging the whole page sideways. */
+.card:has(> .table) {
+  overflow-x: auto;
+}
