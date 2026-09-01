@@ -42,3 +42,9 @@ export function resetDatabase() {
   `);
   migrate();
 }
+
+// Run at import, not from the entry point. Other modules prepare statements at
+// module scope, and imports resolve before any of their code runs, so the
+// tables have to exist the moment this file is loaded. Waiting until index.js
+// calls migrate() only worked because a seeded database already existed.
+migrate();
